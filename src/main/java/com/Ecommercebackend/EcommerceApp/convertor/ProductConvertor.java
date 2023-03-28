@@ -9,7 +9,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class ProductConvertor {
 
-    public static Product productRequestDtotoProduct(ProductRequestDto productRequestDto){
+    public static Product productRequestDtoToProduct(ProductRequestDto productRequestDto){
         return Product.builder()
                 .productName(productRequestDto.getProductName())
                 .price(productRequestDto.getPrice())

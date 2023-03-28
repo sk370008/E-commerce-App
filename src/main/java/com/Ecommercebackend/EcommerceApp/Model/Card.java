@@ -3,6 +3,7 @@ package com.Ecommercebackend.EcommerceApp.Model;
 import com.Ecommercebackend.EcommerceApp.Enum.CardType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "card")
 public class Card {
 

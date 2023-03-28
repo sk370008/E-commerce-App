@@ -33,7 +33,7 @@ public class ProductService {
         catch (Exception e){
             throw new SellerNotFoundException("Invalid seller Id");
         }
-        Product product = ProductConvertor.productRequestDtotoProduct(productRequestDto);
+        Product product = ProductConvertor.productRequestDtoToProduct(productRequestDto);
 
         product.setSeller(seller);
 
@@ -49,7 +49,8 @@ public class ProductService {
 
     }
 
-    public List<ProductResponseDto> getProductsByCategory(ProductCategory productCategory){
+    public List<ProductResponseDto> getProductsByCategory(ProductCategory productCategory) {
+
         List<Product> products = productRepository.findAllByProductCategory(productCategory);
         //prepare a list of response dtos
         List<ProductResponseDto> productResponseDtos = new ArrayList<>();
