@@ -11,6 +11,8 @@ import com.Ecommercebackend.EcommerceApp.RequestDTO.OrderRequestDto;
 import com.Ecommercebackend.EcommerceApp.ResponseDTO.ItemResponseDto;
 import com.Ecommercebackend.EcommerceApp.ResponseDTO.OrderResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,6 +26,9 @@ public class OrderService {
 
     @Autowired
     ItemService itemService;
+
+    @Autowired
+    JavaMailSender emailSender;
 
     public OrderResponseDto placeOrder(OrderRequestDto orderRequestDto) throws CustomerNotFoundException, ProductNotFoundException, InsufficientQuantityException {
         Customer customer;
@@ -45,27 +50,17 @@ public class OrderService {
             throw new InsufficientQuantityException("Required quantity not available");
         }
 
-        //Create item
-        Item item = Item.builder()
-                .product(product)
-                .requiredQuantity(orderRequestDto.getRequiredQuantity())
-                .build();
 
-
-
-        //Prepare order
-
-        int totalCost = orderRequestDto.getRequiredQuantity() * product.getPrice();
-        int deliveryCharge = 0;
-        if(totalCost<500){
-            deliveryCharge = 50;
-            totalCost += deliveryCharge;
+        int totalCostOfCurrent = orderRequestDto.getRequiredQuantity() * product.getPrice();
+        int deliveryChargeOfCurrent = 0;
+        if(totalCostOfCurrent < 500){
+            deliveryChargeOfCurrent = 50;
+            totalCostOfCurrent += deliveryChargeOfCurrent;
         }
-        Ordered order = Ordered.builder()
-                .totalCost(totalCost)
-                .deliveryCharge(deliveryCharge)
-                .customer(customer)
-                .build();
+
+        Ordered order = new Ordered();
+        order.setTotalCost(totalCostOfCurrent);
+        order.setDeliveryCharge(deliveryChargeOfCurrent);
 
         //prepare the card String
         Card card = customer.getCards().get(0);
@@ -77,8 +72,12 @@ public class OrderService {
         cardUsed += card.getCardNo().substring(cardNo-4);
         order.setCardUsedForPayment(cardUsed);
 
-        //update customer current order list
-        customer.getOrders().add(order);
+        Item item = new Item();
+        item.setRequiredQuantity(orderRequestDto.getRequiredQuantity());
+        item.setProduct(product);
+        item.setOrder(order);
+        order.getItems().add(item);
+        order.setCustomer(customer);
 
         //update the quantity of product left in stock
         int leftQuantity = product.getQuantity() - orderRequestDto.getRequiredQuantity();
@@ -87,23 +86,31 @@ public class OrderService {
         }
         product.setQuantity(leftQuantity);
 
-        //update item
-        item.setOrder(order);
+        customer.getOrders().add(order);
+        Customer savedCustomer = customerRepository.save(customer);
+        Ordered savedOrder = savedCustomer.getOrders().get(savedCustomer.getOrders().size()-1);
 
-        //save product-item and customer order
-        customerRepository.save(customer);
-        productRepository.save(product);
 
         //Prepare response dto
         OrderResponseDto orderResponseDto = OrderResponseDto.builder()
                 .productName(product.getProductName())
-                .orderDate(order.getOrderedDate())
+                .orderDate(savedOrder.getOrderedDate())
                 .quantityOrdered(orderRequestDto.getRequiredQuantity())
                 .cardUsedForPayment(cardUsed)
                 .itemPrice(product.getPrice())
                 .totalCost(order.getTotalCost())
-                .deliveryCharge(deliveryCharge)
+                .deliveryCharge(savedOrder.getDeliveryCharge())
                 .build();
+
+        // send an email
+        String text = "Congrats your order with total value "+order.getTotalCost()+" has been placed";
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("johnwicksuar@gmail.com");
+        message.setTo(customer.getEmail());
+        message.setSubject("Order Placed Notification(direct buy)");
+        message.setText(text);
+        emailSender.send(message);
 
         return orderResponseDto;
     }
