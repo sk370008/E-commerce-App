@@ -40,6 +40,13 @@ Maven<br/>
 Git<br/>
 
 
+Here are some screenshots of swagger documentation:-
+
+![Screenshot (21)](https://user-images.githubusercontent.com/77284210/230958882-5c5ae5ff-e22a-443c-87b9-8bed28ed8c03.png)
+
+![Screenshot (22)](https://user-images.githubusercontent.com/77284210/230958895-2f6540b5-4991-484a-90c8-222aa853cdc7.png)
+
+
 Contact
 If you have any questions or feedback, please feel free to contact the developer:<br/>
 Name: Mohammad Shoaib Akhtar<br/>
